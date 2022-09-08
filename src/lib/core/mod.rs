@@ -152,7 +152,11 @@ impl Requester {
         };
 
         let response = request.body(*body_downcasted.clone()).send().await?;
+
         if let Some(a) = response.headers().get("Content-Type") {
+            if a.to_str().unwrap().starts_with("text/") {
+                return Ok(Body::Text(response.text().await?));
+            }
             match a.to_str().unwrap() {
                 "text/html" | "text/plain" => return Ok(Body::Text(response.text().await?)),
                 "application/json" => return Ok(Body::Json(response.text().await?)),
